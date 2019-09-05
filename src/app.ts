@@ -9,7 +9,8 @@ class Application {
     HttpServer
       .getInstance()
       .api(RootEndpoint)
-      .start({ port: this.getPort() });
+      .start({ port: this.getPort() })
+      .then(() => console.log("server started"));
   }
 
   private getPort() {

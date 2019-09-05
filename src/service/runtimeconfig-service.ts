@@ -5,12 +5,28 @@ import { google } from "googleapis";
 export class RuntimeConfigService {
 
   public async getApplicationEndpoint() {
-    const auth = await google.auth.getApplicationDefault();
-    const response = await google.runtimeconfig({ version: "v1beta1" }).projects.configs.variables.get({
-      name: "projects/gcd-jr-demo/configs/sample-config/variables/myconfig",
-      auth: auth.credential,
+
+    const auth = new google.auth.GoogleAuth({
+      scopes: [
+        "https://www.googleapis.com/auth/cloud-platform",
+        "https://www.googleapis.com/auth/cloudruntimeconfig",
+      ],
     });
 
-    return response.data.text;
+    google.options({
+      auth: await auth.getClient(),
+    });
+
+    const projectId = await auth.getProjectId();
+
+    const response = await google.runtimeconfig("v1beta1").projects.configs.list({
+      parent: `projects/${projectId}`,
+    });
+
+    const response2 = await google.deploymentmanager("v2beta").deployments.list({
+      project: projectId,
+    });
+
+    return [response.data, response2.data];
   }
 }
