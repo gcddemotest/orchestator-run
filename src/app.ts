@@ -1,6 +1,6 @@
 
 import { Container, HttpServer, injectable } from "@msiviero/knit";
-import { Hello } from "./api/hello";
+import { RootEndpoint } from "./api/root";
 
 @injectable()
 class Application {
@@ -8,7 +8,7 @@ class Application {
   public run() {
     HttpServer
       .getInstance()
-      .api(Hello)
+      .api(RootEndpoint)
       .start({ port: this.getPort() });
   }
 
