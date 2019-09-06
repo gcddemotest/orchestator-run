@@ -5,6 +5,8 @@ steps:
   args: ['install']
 - name: 'gcr.io/cloud-builders/npm'
   args: ['run-script', 'build']
+- name: 'alpine'
+  args: ['ls', '-lha']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/orchestrator-run', '.']
 images: ['gcr.io/$PROJECT_ID/orchestrator-run']
