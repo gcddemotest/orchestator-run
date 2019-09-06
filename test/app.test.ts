@@ -10,7 +10,7 @@ describe("Http server custom instance", () => {
 
   mockRuntimeConfig
     .setup((instance) => instance.getApplicationEndpoint())
-    .returns(() => Promise.resolve("abcd"));
+    .returns(() => Promise.resolve([]));
 
   const container = new Container()
     .register(RootEndpoint, Scope.Singleton)
@@ -39,8 +39,8 @@ describe("Http server custom instance", () => {
     const response = await supertest(httpServer.getServer())
       .get("/sample")
       .expect(200)
-      .expect("Content-Type", "text/plain; charset=utf-8");
+      .expect("Content-Type", "application/json; charset=utf-8");
 
-    expect(response.text).toEqual("abcd");
+    expect(response.text).toEqual("[]");
   });
 });
