@@ -1,6 +1,9 @@
 steps:
 - name: 'alpine'
   args: ['echo', '$_GOOGLE_CREDENTIALS', '|', 'base64', '-d' , '>', 'credentials.json']
+  volumes:
+    - name: root
+      path: /workspace
 - name: 'gcr.io/cloud-builders/npm'
   args: ['install']
 - name: 'gcr.io/cloud-builders/npm'
@@ -9,4 +12,7 @@ steps:
   args: ['ls', '-lha']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/orchestrator-run', '.']
+  volumes:
+    - name: root
+      path: /workspace
 images: ['gcr.io/$PROJECT_ID/orchestrator-run']
