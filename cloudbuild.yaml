@@ -1,16 +1,26 @@
 steps:
-- name: 'alpine'
-  args: ['echo', '$_GOOGLE_CREDENTIALS', '|', 'base64', '-d' , '>', './credentials/credentials.json']
-  volumes:
-    - name: credentials
-      path: /credentials
-- name: 'gcr.io/cloud-builders/npm'
-  args: ['install']
-- name: 'gcr.io/cloud-builders/npm'
-  args: ['run-script', 'build']
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--tag=gcr.io/$PROJECT_ID/orchestrator-run', '.']
-  volumes:
-    - name: credentials
-      path: /credentials
+  - name: 'alpine'
+    entrypoint: 'sh'
+    args: 
+      - '-c'
+      - |
+        echo "$_GOOGLE_CREDENTIALS" | base64 -d > /gcb/credentials.json
+    volumes:
+      - name: gcb
+        path: /gcb
+
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        mv /gcb/credentials.json .
+        docker build --tag=gcr.io/$PROJECT_ID/orchestrator-run .
+    volumes:
+    - name: gcb
+      path: /gcb
+
 images: ['gcr.io/$PROJECT_ID/orchestrator-run']
+
+options:
+    substitution_option: 'ALLOW_LOOSE'
