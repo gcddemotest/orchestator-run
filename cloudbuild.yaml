@@ -3,16 +3,14 @@ steps:
   args: ['echo', '$_GOOGLE_CREDENTIALS', '|', 'base64', '-d' , '>', './credentials/credentials.json']
   volumes:
     - name: credentials
-      path: /workspace/credentials
+      path: /credentials
 - name: 'gcr.io/cloud-builders/npm'
   args: ['install']
 - name: 'gcr.io/cloud-builders/npm'
   args: ['run-script', 'build']
-- name: 'alpine'
-  args: ['ls', '-lha']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/orchestrator-run', '.']
   volumes:
     - name: credentials
-      path: /workspace/credentials
+      path: /credentials
 images: ['gcr.io/$PROJECT_ID/orchestrator-run']
