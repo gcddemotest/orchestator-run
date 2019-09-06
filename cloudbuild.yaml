@@ -1,4 +1,6 @@
 steps:
+- name: 'alpine'
+  args: ['echo', '$_GOOGLE_CREDENTIALS', '|', 'base64', '-d' , '>', 'credentials.json']
 - name: 'gcr.io/cloud-builders/npm'
   args: ['install']
 - name: 'gcr.io/cloud-builders/npm'
