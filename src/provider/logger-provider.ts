@@ -1,4 +1,4 @@
-import { provider, Scope, env } from "@msiviero/knit";
+import { env, provider, Scope } from "@msiviero/knit";
 import * as pino from "pino";
 import { Logger } from "pino";
 
