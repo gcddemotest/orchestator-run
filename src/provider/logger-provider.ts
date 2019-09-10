@@ -11,9 +11,6 @@ export class LoggerProvider {
   ) { }
 
   public provide = () => {
-
-    console.log("blabal", this.logLevel);
-
     return pino({
       prettyPrint: this.nodeEnv ? false : { colorize: true },
       level: this.logLevel,
