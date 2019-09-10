@@ -10,7 +10,7 @@ describe("Http server custom instance", () => {
 
   mockRuntimeConfig
     .setup((instance) => instance.getApplicationEndpoint())
-    .returns(() => Promise.resolve([]));
+    .returns(() => Promise.resolve({ configs: [] }));
 
   const container = new Container()
     .register(RootEndpoint, Scope.Singleton)

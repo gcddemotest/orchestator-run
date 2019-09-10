@@ -1,6 +1,7 @@
 
 import { Container, HttpServer, injectable } from "@msiviero/knit";
 import { RootEndpoint } from "./api/root";
+import { GoogleApiProvider } from "./provider/googleapi-provider";
 
 @injectable()
 class Application {
@@ -9,8 +10,8 @@ class Application {
     HttpServer
       .getInstance()
       .api(RootEndpoint)
-      .start({ port: this.getPort() })
-      .then(() => console.log("server started"));
+      .registerProvider(GoogleApiProvider)
+      .start({ port: this.getPort() });
   }
 
   private getPort() {
