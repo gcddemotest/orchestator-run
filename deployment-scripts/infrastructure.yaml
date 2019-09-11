@@ -1,0 +1,95 @@
+imports:
+
+# templates
+- path: tpl/docker-vm-pool.jinja
+- path: tpl/instance.jinja
+
+# scripts
+- path: scripts/cloudsql-proxy.sh
+  name: cloudsql-proxy.sh
+- path: scripts/blackbox-vm.sh
+  name: blackbox-vm.sh
+
+resources:
+
+- name: cloudsql-proxy-instance
+  type: tpl/instance.jinja
+  properties:
+    zone: us-central1-c
+    machineType: f1-micro
+    metadata-from-file:
+      startup-script: cloudsql-proxy.sh
+    metadata:
+      cloud-sql-instances: gcd-jr-demo:us-central1:managed-cloudsql-v08-wip=tcp:0.0.0.0:3306
+
+- name: blackbox-app
+  type: tpl/instance.jinja
+  properties:
+    zone: us-central1-c
+    machineType: f1-micro
+    metadata-from-file:
+      startup-script: blackbox-vm.sh
+    metadata:
+      NODE_ENV: prod
+
+- name: frontend-app
+  type: tpl/docker-vm-pool.jinja
+  properties:
+    containerImage: gcr.io/gcd-jr-demo/frontend-sample-app:latest
+    zone: us-central1-c
+    machineType: f1-micro
+    size: 2
+    maxSize: 3
+    containerPort: 8080
+    hostPort: 8080
+    coolDownPeriodSec: 15
+    healthCheckPort: 8080
+    healthCheckPath: /
+    containerEnv:
+      - name: NODE_ENV
+        value: prod
+      - name: BACKEND_APP_ADDRESS
+        value: $(ref.backend-app.address)
+      - name: BACKEND_APP_PORT
+        value: 8080
+      - name: BLACKBOX_APP_ADDRESS
+        value: $(ref.blackbox-app.address)
+      - name: BLACKBOX_APP_PORT
+        value: 8080
+
+- name: backend-app
+  type: tpl/docker-vm-pool.jinja
+  properties:
+    containerImage: gcr.io/gcd-jr-demo/backend-sample-app:latest
+    zone: us-central1-c
+    machineType: f1-micro
+    size: 2
+    maxSize: 10
+    containerPort: 8080
+    hostPort: 8080
+    coolDownPeriodSec: 15
+    healthCheckPort: 8080
+    healthCheckPath: /
+    containerEnv:
+      - name: NODE_ENV
+        value: prod
+      - name: DB_HOST
+        value: $(ref.cloudsql-proxy-instance.address)
+      - name: DB_USER
+        value: myuser
+      - name: DB_PASSWORD
+        value: mypassword
+      - name: DB_DATABASE
+        value: mydb
+
+- name: infrastructure-runtime-config
+  type: runtimeconfig.v1beta1.config
+  properties:
+    config: infrastructure
+
+- name: infrastructure
+  type: runtimeconfig.v1beta1.variable
+  properties:
+    parent: $(ref.infrastructure-runtime-config.name)
+    variable: entrypoint-address
+    text:  $(ref.frontend-app.address)

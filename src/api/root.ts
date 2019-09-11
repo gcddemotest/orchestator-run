@@ -15,6 +15,7 @@ export class RootEndpoint {
     exchange.response.send("gcd demo orchestartor");
   }
 
+  // TOBEDELETED
   @route(HttpMethod.GET, "/sample")
   public async sampleConfig(exchange: Exchange) {
     try {

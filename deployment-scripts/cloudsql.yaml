@@ -1,0 +1,14 @@
+imports:
+- path: tpl/cloudsql.jinja
+
+resources:
+- name: cloudsql
+  type: tpl/cloudsql.jinja
+  properties:
+    instance-tier: db-f1-micro
+     # increment instance name on creation, cloudsql doesn't permit to use the same name of deleted instance for up to 1 week
+    instance-name: managed-cloudsql-v08-wip
+    sql-data-path: gs://demo_gc_data/user.sql
+    sql-dbname: mydb
+    sql-username: myuser
+    sql-password: mypassword

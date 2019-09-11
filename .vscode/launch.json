@@ -17,7 +17,8 @@
                 "ts-node/register",
             ],
             "env": {
-                "GOOGLE_APPLICATION_CREDENTIALS": "${workspaceRoot}/gcd-orchestrator-credentials.json"
+                "GOOGLE_APPLICATION_CREDENTIALS": "${workspaceRoot}/credentials.json",
+                "LOG_LEVEL": "debug"
             }
         },
         {

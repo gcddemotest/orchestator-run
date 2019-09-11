@@ -1,0 +1,89 @@
+{% set REGION = properties["zone"][:properties["zone"].rfind('-')] %}
+{% set TPL_NAME = env['name'] + "-template" %}
+
+resources:
+- name: {{ TPL_NAME }}
+  type: compute.v1.instanceTemplate
+  properties:
+    zone: {{ properties["zone"] }}
+    properties:
+      metadata:
+        items:
+        - key: gce-container-declaration
+          value: |
+            apiVersion: v1
+            kind: Pod
+            metadata:
+              name: {{ env["name"] }}
+            spec:
+              containers:
+              - name: {{ env["name"] }}
+                image: {{ properties["containerImage"] }}
+                imagePullPolicy: Always
+                ports:
+                  - containerPort: {{ properties["containerPort"] }}
+                    hostPort: {{ properties["hostPort"] }}
+                env: {{ properties["containerEnv"]}}
+
+      serviceAccounts:
+        - email: default
+          scopes:
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring.write
+      machineType: {{ properties["machineType"] }}
+      networkInterfaces:
+      - network: https://www.googleapis.com/compute/v1/projects/{{ env["project"] }}/global/networks/default
+        accessConfigs:
+        - name: External-IP
+          type: ONE_TO_ONE_NAT
+      disks:
+      - deviceName: boot
+        type: PERSISTENT
+        boot: true
+        autoDelete: true
+        initializeParams:
+          sourceImage: https://www.googleapis.com/compute/v1/projects/cos-cloud/global/images/family/cos-stable    
+
+- name: {{ env["name"] }}-instance-group-manager
+  type: compute.v1.instanceGroupManager
+  properties:
+    zone: {{ properties["zone"] }}
+    targetSize: {{ properties["size"] }}
+    baseInstanceName: {{ env["name"] }}-instance
+    instanceTemplate: $(ref.{{ TPL_NAME }}.selfLink)
+    targetPools: [$(ref.{{ env["name"] }}-target-pool.selfLink)]
+
+- name: {{ env["name"] }}-autoscaler
+  type: compute.v1.autoscaler
+  properties:
+    zone: {{ properties["zone"] }}
+    target: $(ref.{{ env["name"] }}-instance-group-manager.selfLink)
+    autoscalingPolicy:
+      coolDownPeriodSec:  {{ properties["coolDownPeriodSec"] }}
+      maxNumReplicas: {{ properties["maxSize"] }}
+  
+- name: {{ env["name"] }}-health-check
+  type: compute.v1.httpHealthCheck
+  properties:
+    port: {{ properties["healthCheckPort"] }}
+    requestPath: {{ properties["healthCheckPath"] }}
+
+- name: {{ env["name"] }}-target-pool
+  type: compute.v1.targetPool
+  properties:
+    region: {{ REGION }}
+    healthChecks: [$(ref.{{ env["name"] }}-health-check.selfLink)]
+    
+- name: {{ env["name"] }}-lb
+  type: compute.v1.forwardingRule
+  properties:
+    region: {{ REGION }}
+    #loadBalancingScheme: INTERNAL_SELF_MANAGED see https://github.com/GoogleCloudPlatform/deploymentmanager-samples/blob/master/examples/v2/internal_lb/python/internal_lb.py
+    portRange: 8080-8080
+    target: $(ref.{{ env["name"] }}-target-pool.selfLink)
+
+outputs:
+- name: address
+  value: $(ref.{{ env["name"] }}-lb.IPAddress)
+- name: port
+  value: {{ properties["hostPort"] }}

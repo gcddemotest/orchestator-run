@@ -7,13 +7,10 @@ export class LoggerProvider {
 
   constructor(
     @env("LOG_LEVEL", "info") private readonly logLevel: string,
-    @env("NODE_ENV", "development") private readonly nodeEnv: string,
   ) { }
 
-  public provide = () => {
-    return pino({
-      prettyPrint: this.nodeEnv ? false : { colorize: true },
-      level: this.logLevel,
-    });
-  }
+  public provide = () => pino({
+    prettyPrint: { colorize: true },
+    level: this.logLevel,
+  })
 }

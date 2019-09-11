@@ -1,0 +1,38 @@
+resources:
+  - name: {{ env["name" ]}}-vm
+    type: compute.v1.instance
+    properties:
+      machineType: projects/{{ env["project"] }}/zones/{{properties["zone"]}}/machineTypes/{{ properties['machineType'] }}
+      zone: {{ properties['zone'] }}
+      metadata:
+        items:
+          {% for key, value in properties['metadata-from-file'].iteritems() %}
+          - key: {{ key }}
+            value: |
+              {{ imports[value]|indent(14) }}
+          {% endfor %}
+          {% for key, value in properties['metadata'].iteritems() %}
+          - key: {{ key }}
+            value: {{ value }}
+          {% endfor %}
+      disks:
+        - deviceName: boot
+          type: PERSISTENT
+          boot: true
+          autoDelete: true
+          initializeParams:
+            sourceImage: projects/debian-cloud/global/images/family/debian-9
+      networkInterfaces:
+        - network: https://www.googleapis.com/compute/v1/projects/{{ env["project"] }}/global/networks/default
+          accessConfigs:
+            - name: External-IP
+              type: ONE_TO_ONE_NAT
+              networkTier: STANDARD
+      serviceAccounts:
+        - email: default
+          scopes:
+            - https://www.googleapis.com/auth/cloud-platform
+
+outputs:
+- name: address
+  value: $(ref.{{ env["name" ]}}-vm.networkInterfaces[0].networkIP)

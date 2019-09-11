@@ -1,0 +1,50 @@
+resources:
+
+# Cloud SQL instance
+- type: sqladmin.v1beta4.instance
+  name: {{ properties["instance-name"] }}
+  properties:
+    settings:
+      tier: {{ properties["instance-tier"] }}
+      
+# Database on previously created instance
+- type: sqladmin.v1beta4.database
+  name: managed-cloudsql-database
+  properties:
+    instance: {{ properties["instance-name"] }}
+    name: {{ properties["sql-dbname"] }}
+    charset: utf8
+    collation: utf8_general_ci
+  metadata:
+    dependsOn: 
+    - {{ properties["instance-name"] }}
+
+# Create a db user
+- type: sqladmin.v1beta4.user
+  name: managed-cloudsql-user
+  properties:
+    instance: {{ properties["instance-name"] }}
+    name: {{ properties["sql-username"] }}
+    password: {{ properties["sql-password"] }}
+  metadata:
+    dependsOn: 
+    - managed-cloudsql-database
+
+# Cloud SQL import
+- action: gcp-types/sqladmin-v1beta4:sql.instances.import
+  name: managed-cloudsql-import
+  properties:
+    instance: {{ properties["instance-name"] }}
+    importContext:
+      database: {{ properties["sql-dbname"] }}
+      fileType: SQL
+      uri: {{ properties["sql-data-path"] }}
+  metadata:
+    dependsOn: 
+    - managed-cloudsql-database
+
+outputs:
+- name: connection
+  value: $(ref.{{ properties["instance-name"] }}.connectionName)
+- name: ip
+  value: $(ref.{{ properties["instance-name"] }}.ipAddresses[0].ipAddress)
