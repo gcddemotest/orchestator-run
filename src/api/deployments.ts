@@ -8,6 +8,12 @@ export class DeploymentsEndpoint {
     private readonly deploymentManager: DeploymentManagerService,
   ) { }
 
+  @route(HttpMethod.GET)
+  public async get(exchange: Exchange) {
+    const response = await this.deploymentManager.get();
+    exchange.response.code(200).send(response);
+  }
+
   @route(HttpMethod.POST)
   public async create(exchange: Exchange) {
     await this.deploymentManager.deploy();

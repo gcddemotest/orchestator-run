@@ -1,4 +1,4 @@
-import { inject, injectable } from "@msiviero/knit";
+import { HttpError, inject, injectable } from "@msiviero/knit";
 import { GoogleApiClient } from "../provider/googleapi-provider";
 
 @injectable()
@@ -16,10 +16,16 @@ export class RuntimeConfigService {
       .runtimeconfig("v1beta1")
       .projects
       .configs
-      .list({
-        parent: `projects/${google.projectId}`,
+      .variables
+      .get({
+        name: `projects/${google.projectId}/configs/infrastructure/variables/entrypoint-address`,
       });
 
-    return response.data;
+    const value = response.data.text;
+
+    if (!value) {
+      throw new HttpError(404, "Entrypoint address not found. The infrastructure is deployed?");
+    }
+    return value;
   }
 }
