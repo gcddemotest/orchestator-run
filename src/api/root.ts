@@ -16,7 +16,9 @@ export class RootEndpoint {
   @route(HttpMethod.GET, "/endpoint")
   public async sampleConfig(exchange: Exchange) {
     try {
-      exchange.response.send(await this.runtimeConfigService.getApplicationEndpoint());
+      exchange.response.send({
+        endpoint: await this.runtimeConfigService.getApplicationEndpoint(),
+      });
     } catch (error) {
       exchange.response.code(500).send(error);
     }
