@@ -10,5 +10,6 @@ COPY package*.json ./
 COPY credentials.json credentials.json
 RUN npm install
 COPY dist/ dist/
+COPY deployment-scripts/ deployment-scripts/
 
 CMD [ "npm", "start" ]
